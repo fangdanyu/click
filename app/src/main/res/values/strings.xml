@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Click</string>
+    <string name="service_label">Click 连点器</string>
+    <string name="service_desc">Click 通过无障碍服务模拟屏幕点击，用于录制与重复执行点击轨迹。无需 ROOT，也不需开启调试模式。</string>
+
+    <string name="header_sub">连点器 · 免 ROOT · 轨迹录制</string>
+    <string name="status_title">运行状态</string>
+    <string name="acc_on">无障碍服务已开启</string>
+    <string name="acc_off">无障碍服务未开启</string>
+    <string name="btn_acc_on">已开启</string>
+    <string name="btn_acc_off">去开启</string>
+    <string name="ov_on">悬浮窗权限已授权</string>
+    <string name="ov_off">悬浮窗权限未授权（可选备用）</string>
+    <string name="btn_ov_on">已授权</string>
+    <string name="btn_ov_off">去授权</string>
+
+    <string name="rounds_title">执行轮次</string>
+    <string name="rounds_hint">完整走完一遍轨迹算 1 次；「手动停止」会一直循环，直到你点圆点暂停后再结束。</string>
+
+    <string name="tasks_title">我的任务</string>
+    <string name="tasks_empty">还没有任务。点悬浮工具条上的「录制」录一条，或者用下面的按钮。</string>
+    <string name="btn_record">＋  录制新任务</string>
+    <string name="btn_stop_run">■  结束当前执行</string>
+
+    <string name="guide_title">使用说明</string>
+    <string name="guide_body">1. 先在系统设置里开启 Click 的无障碍服务（设置 › 无障碍 › 已安装的服务 › Click）。\n2. 工具条：单击左上角圆形图标 = 收缩/展开工具条；双击图标 = 打开这个首页；按住图标可拖动工具条位置。\n3. 点工具条上的「录制」，回到目标界面按顺序点出要点的位置，节奏会自动记录；又快又近的连点只算一个点位。\n4. 点「开始」会先让你选执行轮次（1~5 次或手动停止），选完立刻开始；执行时只剩一个小圆点，点它就会暂停并弹出「继续 / 结束」。\n5. 点工具条上的任务名可以在下拉列表里切换任务；点「编辑」可拖动、增删轨迹点位。</string>
+
+    <string name="toast_no_service">请先在系统设置中开启 Click 的无障碍服务</string>
+    <string name="toast_no_task">还没有任务，请先录制一条轨迹</string>
+    <string name="toast_no_point">这个任务还没有点位</string>
+
+    <string name="keep_title">后台常驻（降低被清理后掉线的概率）</string>
+    <string name="btn_keep_on">已开启</string>
+    <string name="btn_keep_off">已关闭</string>
+
+    <string name="svc_off_title">无障碍服务已关闭</string>
+    <string name="svc_off_msg">Android 在应用被「强制停止 / 结束进程」时会自动关闭它的无障碍服务，这是系统安全策略，应用自己无法偷偷再打开。\n\n重新开启一次即可正常使用。若经常被清理，建议打开下面的「后台常驻」。</string>
+    <string name="svc_off_go">一键去开启</string>
+    <string name="svc_off_later">稍后</string>
+
+    <string name="auto_restore_ok">已自动恢复无障碍服务</string>
+    <string name="notif_channel">运行状态</string>
+    <string name="notif_title">Click 连点器运行中</string>
+    <string name="notif_text">无障碍服务保持连接，点此回到应用</string>
+
+    <string name="footer_credit">产品设计：FDY　·　版本 %1$s</string>
+</resources>

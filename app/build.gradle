@@ -1,0 +1,64 @@
+plugins {
+    id 'com.android.application'
+}
+
+// 签名配置从本地 keystore.properties 读取（该文件与 keystore 均在 .gitignore 中，不入库）。
+// 缺少该文件时仍可正常构建 debug 包，release 包则为未签名产物。
+def ksPropsFile = rootProject.file("keystore.properties")
+def ksProps = new Properties()
+def hasKeystore = ksPropsFile.exists()
+if (hasKeystore) {
+    ksPropsFile.withInputStream { ksProps.load(it) }
+}
+
+android {
+    namespace 'com.click.autoclicker'
+    compileSdk 36
+
+    defaultConfig {
+        applicationId "com.click.autoclicker"
+        minSdk 24
+        targetSdk 34
+        versionCode 3
+        versionName "1.3.0"
+    }
+
+    signingConfigs {
+        if (hasKeystore) {
+            release {
+                storeFile file(ksProps['storeFile'])
+                storePassword ksProps['storePassword']
+                keyAlias ksProps['keyAlias']
+                keyPassword ksProps['keyPassword']
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            if (hasKeystore) {
+                signingConfig signingConfigs.release
+            }
+        }
+        debug {
+            if (hasKeystore) {
+                signingConfig signingConfigs.release
+            }
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    lint {
+        abortOnError false
+        checkReleaseBuilds false
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}

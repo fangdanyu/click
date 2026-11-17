@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Click · 免 ROOT 的安卓连点器</title>
+<meta name="description" content="Click 是一款免 ROOT 的安卓连点器：录制点击轨迹与频率、轨迹可编辑、多任务保存、执行轮次可选，工具条常驻，执行时收缩为小圆点避让并随时暂停。">
+<link rel="icon" href="assets/icon.png">
+<style>
+  :root{
+    --bg:#05080F;
+    --card:rgba(255,255,255,.045);
+    --line:rgba(110,190,255,.16);
+    --txt:#E9F1FC;
+    --muted:#93A4C2;
+    --dim:#6D7A97;
+    --cyan:#3ED8FF;
+    --violet:#7C5CFF;
+    --radius:18px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    background:var(--bg);color:var(--txt);
+    font-family:"PingFang SC","Microsoft YaHei","微软雅黑",system-ui,-apple-system,"Segoe UI",sans-serif;
+    -webkit-font-smoothing:antialiased;line-height:1.6;overflow-x:hidden;
+  }
+  body::before{
+    content:"";position:fixed;inset:0;z-index:-2;pointer-events:none;
+    background:
+      radial-gradient(900px 620px at 88% -12%, rgba(124,92,255,.40), rgba(124,92,255,0) 68%),
+      radial-gradient(760px 560px at -6% 2%, rgba(62,216,255,.24), rgba(62,216,255,0) 68%),
+      radial-gradient(1100px 800px at 50% 118%, rgba(62,150,255,.20), rgba(62,150,255,0) 72%),
+      linear-gradient(168deg,#070C15 0%,#0B1221 46%,#070B13 100%);
+  }
+  body::after{
+    content:"";position:fixed;inset:0 0 auto 0;height:520px;z-index:-1;pointer-events:none;opacity:.5;
+    background-image:
+      linear-gradient(rgba(120,200,255,.13) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(120,200,255,.13) 1px,transparent 1px);
+    background-size:56px 56px;
+    -webkit-mask-image:linear-gradient(to bottom,rgba(0,0,0,.9),rgba(0,0,0,0));
+            mask-image:linear-gradient(to bottom,rgba(0,0,0,.9),rgba(0,0,0,0));
+  }
+  .wrap{max-width:1120px;margin:0 auto;padding:0 24px}
+
+  /* ---------- nav ---------- */
+  nav{
+    position:sticky;top:0;z-index:20;backdrop-filter:blur(14px);
+    background:rgba(6,10,18,.72);border-bottom:1px solid rgba(110,190,255,.12);
+  }
+  .navin{max-width:1120px;margin:0 auto;padding:14px 24px;display:flex;align-items:center;gap:14px}
+  .navin img{width:34px;height:34px;border-radius:9px;box-shadow:0 6px 18px rgba(62,180,255,.35)}
+  .navin .brand{font-weight:800;font-size:19px;letter-spacing:.3px}
+  .navlinks{margin-left:auto;display:flex;gap:26px;font-size:14px;color:var(--muted)}
+  .navlinks a{color:inherit;text-decoration:none;transition:.2s}
+  .navlinks a:hover{color:var(--cyan)}
+  @media (max-width:720px){.navlinks{display:none}}
+
+  /* ---------- hero ---------- */
+  header.hero{padding:76px 0 40px}
+  .heroin{display:grid;grid-template-columns:1fr 360px;gap:48px;align-items:center}
+  .eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:#BCE9FF;
+    border:1px solid rgba(120,200,255,.3);background:rgba(62,216,255,.07);padding:6px 14px;border-radius:999px}
+  .eyebrow i{width:6px;height:6px;border-radius:50%;background:linear-gradient(135deg,var(--cyan),var(--violet));display:inline-block}
+  h1{
+    font-size:clamp(38px,6vw,66px);line-height:1.08;font-weight:800;margin:20px 0 14px;letter-spacing:-.5px;
+    background:linear-gradient(96deg,#FFFFFF 10%,#9FF1FF 52%,#A9B4FF 92%);
+    -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+  }
+  .lead{font-size:17px;color:var(--muted);max-width:560px}
+  .chips{display:flex;flex-wrap:wrap;gap:10px;margin:24px 0 30px}
+  .chip{font-size:13px;color:#C5E8FF;border:1px solid rgba(120,200,255,.3);
+    background:rgba(62,216,255,.07);padding:7px 15px;border-radius:999px}
+  .cta{display:flex;flex-wrap:wrap;gap:14px;align-items:center}
+  .btn{
+    display:inline-flex;align-items:center;gap:10px;padding:14px 28px;border-radius:14px;
+    font-size:15px;font-weight:700;text-decoration:none;transition:transform .18s,box-shadow .18s}
+  .btn-primary{color:#04121C;background:linear-gradient(135deg,var(--cyan),var(--violet));
+    box-shadow:0 14px 34px rgba(80,140,255,.35)}
+  .btn-primary:hover{transform:translateY(-2px);box-shadow:0 18px 42px rgba(80,140,255,.45)}
+  .btn-ghost{color:#D5E6FB;border:1px solid rgba(120,200,255,.28);background:rgba(255,255,255,.03)}
+  .btn-ghost:hover{border-color:rgba(120,200,255,.55);transform:translateY(-2px)}
+  .meta{margin-top:18px;font-size:13px;color:var(--dim)}
+
+  .heroshot{position:relative;display:flex;justify-content:center}
+  .glow{position:absolute;width:300px;height:300px;border-radius:50%;filter:blur(70px);opacity:.55;
+    background:radial-gradient(circle,#3ED8FF,#7C5CFF 70%,transparent 72%);top:40px}
+  .phone{
+    position:relative;width:300px;aspect-ratio:9/16;border-radius:30px;overflow:hidden;
+    border:1px solid rgba(120,200,255,.3);background:#0A0F1A;
+    box-shadow:0 30px 70px rgba(0,0,0,.6),0 0 0 7px rgba(255,255,255,.03)}
+  .phone img{width:100%;height:100%;display:block}
+
+  /* ---------- sections ---------- */
+  section{padding:64px 0}
+  .sectitle{font-size:clamp(24px,3.4vw,32px);font-weight:800;letter-spacing:-.2px}
+  .sectitle em{font-style:normal;background:linear-gradient(96deg,#9FF1FF,#A9B4FF);
+    -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  .secsub{margin-top:10px;color:var(--muted);font-size:15px}
+
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:34px}
+  .card{
+    background:linear-gradient(160deg,rgba(255,255,255,.055),rgba(255,255,255,.02));
+    border:1px solid var(--line);border-radius:var(--radius);padding:24px 22px;
+    box-shadow:0 12px 30px rgba(0,0,0,.25);transition:.22s}
+  .card:hover{transform:translateY(-3px);border-color:rgba(120,200,255,.34)}
+  .num{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;
+    font-weight:800;font-size:14px;color:#06101A;background:linear-gradient(135deg,var(--cyan),var(--violet));margin-bottom:14px}
+  .card h3{font-size:16.5px;font-weight:700;margin-bottom:8px}
+  .card p{font-size:13.8px;color:var(--muted);line-height:1.65}
+
+  /* ---------- screenshots ---------- */
+  .shots{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin-top:34px}
+  .shot figure{display:flex;flex-direction:column;align-items:center;gap:14px}
+  .shot .phone{width:100%;max-width:280px}
+  .shot figcaption{font-size:13px;color:var(--dim);text-align:center}
+
+  /* ---------- steps ---------- */
+  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:34px}
+  .step{position:relative;padding:26px 22px;border-radius:var(--radius);
+    border:1px solid rgba(110,190,255,.14);background:rgba(255,255,255,.028)}
+  .step .k{font-size:12px;letter-spacing:2px;color:var(--cyan);font-weight:700}
+  .step h4{font-size:16px;margin:10px 0 8px}
+  .step p{font-size:13.6px;color:var(--muted)}
+
+  /* ---------- faq ---------- */
+  .faq{display:grid;gap:12px;margin-top:30px;max-width:860px}
+  .qa{border:1px solid rgba(110,190,255,.14);border-radius:14px;background:rgba(255,255,255,.028);padding:18px 22px}
+  .qa h4{font-size:15px;margin-bottom:6px;color:#DCEBFF}
+  .qa p{font-size:13.6px;color:var(--muted)}
+
+  /* ---------- footer ---------- */
+  footer{border-top:1px solid rgba(110,190,255,.12);padding:34px 0 46px;margin-top:30px}
+  .footin{display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:space-between;
+    font-size:13.5px;color:var(--dim)}
+  .footin .left{display:flex;align-items:center;gap:10px}
+  .footin img{width:26px;height:26px;border-radius:7px}
+  .footin a{color:#9FE6FF;text-decoration:none}
+  .footin a:hover{text-decoration:underline}
+
+  @media (max-width:900px){
+    .heroin{grid-template-columns:1fr;gap:36px}
+    .heroshot{order:-1}
+    .glow{top:10px}
+    .grid{grid-template-columns:repeat(2,1fr)}
+    .shots{grid-template-columns:repeat(3,1fr);gap:14px}
+    .steps{grid-template-columns:1fr}
+  }
+  @media (max-width:600px){
+    header.hero{padding:44px 0 24px}
+    .grid{grid-template-columns:1fr}
+    .shots{grid-template-columns:1fr;gap:26px}
+    .shot .phone{max-width:240px}
+    section{padding:48px 0}
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="navin">
+    <img src="assets/icon.png" alt="Click">
+    <span class="brand">Click</span>
+    <div class="navlinks">
+      <a href="#features">功能</a>
+      <a href="#shots">截图</a>
+      <a href="#start">上手</a>
+      <a href="#faq">问答</a>
+      <a href="__REPO__" target="_blank" rel="noopener">GitHub</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap heroin">
+    <div>
+      <span class="eyebrow"><i></i>Android 无障碍手势 · 无需 ROOT</span>
+      <h1>Click</h1>
+      <p class="lead">录一遍操作，就能反复回放。轨迹可视化、点位可编辑、频率以毫秒设定，多个任务随存随用。</p>
+      <div class="chips">
+        <span class="chip">录制即回放</span>
+        <span class="chip">轨迹可编辑</span>
+        <span class="chip">工具条常驻</span>
+        <span class="chip">轮次 1~5 次</span>
+        <span class="chip">免调试模式</span>
+      </div>
+      <div class="cta">
+        <a class="btn btn-primary" href="__APK__">下载 APK · v1.3.0</a>
+        <a class="btn btn-ghost" href="__REPO__" target="_blank" rel="noopener">查看源码</a>
+      </div>
+      <p class="meta">支持 Android 7.0 及以上 · 安装包约 270 KB · 走系统无障碍服务派发手势</p>
+    </div>
+    <div class="heroshot">
+      <div class="glow"></div>
+      <div class="phone"><img src="assets/01-home.png" alt="Click 首页任务列表"></div>
+    </div>
+  </div>
+</header>
+
+<section id="features">
+  <div class="wrap">
+    <h2 class="sectitle">它到底能做什么 <em>· Features</em></h2>
+    <p class="secsub">六件事，覆盖从录制到回放的完整链路。</p>
+    <div class="grid">
+      <div class="card">
+        <div class="num">1</div>
+        <h3>录制即回放</h3>
+        <p>在目标界面按顺序点一遍，坐标与节奏（毫秒）自动记录，不用手写参数。</p>
+      </div>
+      <div class="card">
+        <div class="num">2</div>
+        <h3>轨迹可编辑</h3>
+        <p>拖动圆点改位置、空白处新增、长按删除，带编号的轨迹线实时预览。</p>
+      </div>
+      <div class="card">
+        <div class="num">3</div>
+        <h3>工具条常驻</h3>
+        <p>不在执行时是工具条形态：开始、录制、编辑、任务名。单击图标收缩，双击回首页。</p>
+      </div>
+      <div class="card">
+        <div class="num">4</div>
+        <h3>轮次可选</h3>
+        <p>点「开始」先选 1~5 次或手动停止，选完立刻执行，跑完自动收手。</p>
+      </div>
+      <div class="card">
+        <div class="num">5</div>
+        <h3>圆点避让 + 随时暂停</h3>
+        <p>执行时收缩成小圆点并避开点击区域；点圆点即暂停，展开「继续 / 结束」。</p>
+      </div>
+      <div class="card">
+        <div class="num">6</div>
+        <h3>免 ROOT · 免调试</h3>
+        <p>全程走系统无障碍服务派发手势，不 root、不开 USB 调试，装上即用。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="shots">
+  <div class="wrap">
+    <h2 class="sectitle">实机界面 <em>· Screenshots</em></h2>
+    <p class="secsub">首页任务列表、录制中的轨迹与节奏、执行时收缩的圆点。</p>
+    <div class="shots">
+      <div class="shot"><figure>
+        <div class="phone"><img src="assets/01-home.png" alt="首页 · 已录制任务列表"></div>
+        <figcaption>首页 · 已录制任务列表</figcaption>
+      </figure></div>
+      <div class="shot"><figure>
+        <div class="phone"><img src="assets/05-record.png" alt="录制 · 轨迹与节奏"></div>
+        <figcaption>录制 · 轨迹与节奏</figcaption>
+      </figure></div>
+      <div class="shot"><figure>
+        <div class="phone"><img src="assets/06-run.png" alt="执行 · 圆点即暂停"></div>
+        <figcaption>执行 · 圆点即暂停</figcaption>
+      </figure></div>
+    </div>
+  </div>
+</section>
+
+<section id="start">
+  <div class="wrap">
+    <h2 class="sectitle">三步上手 <em>· Quick Start</em></h2>
+    <div class="steps">
+      <div class="step">
+        <span class="k">STEP 01</span>
+        <h4>开启无障碍服务</h4>
+        <p>安装后进首页点「去开启」，在系统无障碍设置里找到 Click 并打开。这是唯一需要的权限。</p>
+      </div>
+      <div class="step">
+        <span class="k">STEP 02</span>
+        <h4>录制一条轨迹</h4>
+        <p>点工具条上的「录制」，在目标界面按顺序点要执行的点，结束录制即生成带节奏的任务。</p>
+      </div>
+      <div class="step">
+        <span class="k">STEP 03</span>
+        <h4>选轮次开跑</h4>
+        <p>点「开始」选 1~5 次或手动停止，图标收缩为圆点开始执行；点圆点即可暂停或结束。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="faq">
+  <div class="wrap">
+    <h2 class="sectitle">常见问题 <em>· FAQ</em></h2>
+    <div class="faq">
+      <div class="qa">
+        <h4>需要 ROOT 或开启 USB 调试吗？</h4>
+        <p>都不需要。Click 使用 Android 无障碍服务的「派发手势」能力模拟真实点击，这也是它能免 ROOT 工作的原因。</p>
+      </div>
+      <div class="qa">
+        <h4>为什么结束进程后要重新开启无障碍？</h4>
+        <p>被系统清理或手动结束进程后，无障碍服务注册会被注销。重新打开 APP 时会给出提示，点一下即可恢复，任务与轨迹不会丢失。</p>
+      </div>
+      <div class="qa">
+        <h4>双击很快的时候，为什么只记录了一个点？</h4>
+        <p>相邻点位距离过近且间隔过短时会自动合并成一个路径点，避免轨迹密密麻麻、回放时误触。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap footin">
+    <div class="left">
+      <img src="assets/icon.png" alt="Click">
+      <span>产品设计：FDY · v1.3.0 · Android 7.0+</span>
+    </div>
+    <div>
+      <a href="__REPO__" target="_blank" rel="noopener">GitHub 仓库</a>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
