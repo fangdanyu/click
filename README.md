@@ -6,7 +6,8 @@
 
 <p align="center">
   <a href="Click.apk"><b>⬇ 下载 APK（v1.3.0）</b></a> &nbsp;·&nbsp;
-  <a href="docs/index.html">产品官网</a> &nbsp;·&nbsp;
+  <a href="docs/index.html">产品官网（本地）</a> &nbsp;·&nbsp;
+  <a href="https://fangdanyu.github.io/click/">在线官网</a> &nbsp;·&nbsp;
   <a href="https://github.com/fangdanyu/click">GitHub 仓库</a>
 </p>
 
